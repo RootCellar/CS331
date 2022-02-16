@@ -77,6 +77,8 @@ lexer.catnames = {
 -- Local Constants
 -- *********************************************************************
 
+-- keywords
+-- Array of the keywords used in Tenrec
 local keywords = {
   "and",
   "char",
@@ -200,18 +202,18 @@ function lexer.lex(program)
 
     -- ***** States *****
 
-    local DONE   = 0
-    local START  = 1
-    local LETTER = 2
-    local DIGIT  = 3
-    local DIGDOT = 4
-    local DOT    = 5
-    local PLUS   = 6
-    local MINUS  = 7
-    local STAR   = 8
-    local EXP = 9
-    local STRING1 = 10
-    local STRING2 = 11
+    local DONE     = 0
+    local START    = 1
+    local LETTER   = 2
+    local DIGIT    = 3
+    local DIGDOT   = 4
+    local DOT      = 5
+    local PLUS     = 6
+    local MINUS    = 7
+    local STAR     = 8
+    local EXP      = 9
+    local STRING1  = 10
+    local STRING2  = 11
     local ANGBRACK = 12
 
     -- ***** Character-Related Utility Functions *****
