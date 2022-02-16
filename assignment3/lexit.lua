@@ -370,10 +370,6 @@ function lexer.lex(program)
               state = DONE
               category = lexer.NUMLIT
             end
-            --if
-        --elseif ch == "." then
-        --    add1()
-        --    state = DIGDOT
         else
             state = DONE
             category = lexer.NUMLIT
@@ -465,25 +461,19 @@ function lexer.lex(program)
     -- State MINUS: we have seen a minus ("-") and nothing else.
     local function handle_MINUS()
         if isDigit(ch) then
-          --add1()
           state = DONE
           category = lexer.OP
         elseif ch == "." then
-            --if isDigit(nextChar()) then  -- lookahead
-                --add1()  -- add dot to lexeme
-                --state = DIGDOT
-            --else        -- lexeme is just "-"; do not add dot to lexeme
-                state = DONE
-                category = lexer.OP
-            --end
+            state = DONE
+            category = lexer.OP
         else
             state = DONE
             category = lexer.OP
         end
     end
 
-    -- State STAR: we have seen a star ("*"), slash ("/"), or equal
-    -- ("=") and nothing else.
+    -- State STAR: we have seen a star ("*"), slash ("/"), modulo ("%")
+    --or equal ("=") and nothing else.
     local function handle_STAR()  -- Handle * or / or =
         if ch == "=" and nextChar() == "=" then
             add1()
