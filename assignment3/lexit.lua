@@ -212,6 +212,7 @@ function lexer.lex(program)
     local EXP = 9
     local STRING1 = 10
     local STRING2 = 11
+    local ANGBRACK = 12
 
     -- ***** Character-Related Utility Functions *****
 
@@ -309,8 +310,8 @@ function lexer.lex(program)
         elseif ch == "-" then
             add1()
             state = MINUS
-        elseif ch == "*" or ch == "/" or ch == "=" then
-            add1()
+        elseif ch == "*" or ch == "/" or ch == "%" or ch == "=" then
+            --add1()
             state = STAR
         elseif ch == "'" then
           add1()
@@ -318,6 +319,18 @@ function lexer.lex(program)
         elseif ch == '"' then
           add1()
           state = STRING2
+        elseif ch == "!" and nextChar() == "=" then
+          add1()
+          add1()
+          state = DONE
+          category = lexer.OP
+        elseif ch == "<" or ch == ">" then
+          add1()
+          state=ANGBRACK
+        elseif ch == "[" or ch == "]" then
+          add1()
+          state = DONE
+          category = lexer.OP
         else
             add1()
             state = DONE
@@ -443,10 +456,6 @@ function lexer.lex(program)
                 state = DONE
                 category = lexer.OP
             --end
-        elseif ch == "+" or ch == "=" then
-            add1()
-            state = DONE
-            category = lexer.OP
         else
             state = DONE
             category = lexer.OP
@@ -467,10 +476,6 @@ function lexer.lex(program)
                 state = DONE
                 category = lexer.OP
             --end
-        elseif ch == "=" then
-            add1()
-            state = DONE
-            category = lexer.OP
         else
             state = DONE
             category = lexer.OP
@@ -480,6 +485,19 @@ function lexer.lex(program)
     -- State STAR: we have seen a star ("*"), slash ("/"), or equal
     -- ("=") and nothing else.
     local function handle_STAR()  -- Handle * or / or =
+        if ch == "=" and nextChar() == "=" then
+            add1()
+            add1()
+            state = DONE
+            category = lexer.OP
+        else
+            add1()
+            state = DONE
+            category = lexer.OP
+        end
+    end
+
+    local function handle_ANGBRACK()  -- Handle < or >
         if ch == "=" then
             add1()
             state = DONE
@@ -504,7 +522,8 @@ function lexer.lex(program)
         [STAR]=handle_STAR,
         [EXP]=handle_EXP,
         [STRING1]=handle_STRING1,
-        [STRING2]=handle_STRING2
+        [STRING2]=handle_STRING2,
+        [ANGBRACK]=handle_ANGBRACK
     }
 
     -- ***** Iterator Function *****
