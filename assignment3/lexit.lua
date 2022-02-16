@@ -232,6 +232,9 @@ function lexer.lex(program)
         return program:sub(pos+1, pos+1)
     end
 
+    -- nextCharC
+    -- Similar to nextChar(), except returns a single character
+    -- n places ahead
     local function nextCharC(count)
         return program:sub(pos+count, pos+count)
     end
@@ -344,9 +347,6 @@ function lexer.lex(program)
             add1()
         else
             state = DONE
-            --if lexstr == "begin" or lexstr == "end"
-              --or lexstr == "print" then
-                --category = lexer.KEY
             for i, word in pairs(keywords) do
               if lexstr == word then
                 category = lexer.KEY
@@ -376,6 +376,7 @@ function lexer.lex(program)
         end
     end
 
+    -- State EXP: we are in a NUMLIT, and have seen an exponent ("e") or ("e+") (case insensitive)
     local function handle_EXP()
         if isDigit(ch) then
             add1()
@@ -385,6 +386,7 @@ function lexer.lex(program)
         end
     end
 
+    -- State STRING1: we are in a string that started with a single-quote ("'")
     local function handle_STRING1()
         if ch == "\n" then
           state = DONE
@@ -401,6 +403,7 @@ function lexer.lex(program)
         end
     end
 
+    -- State STRING2: we are in a string that started with a double-quote ('"')
     local function handle_STRING2()
       if ch == "\n" then
         state = DONE
@@ -429,53 +432,26 @@ function lexer.lex(program)
 
     -- State DOT: we have seen a dot (".") and nothing else.
     local function handle_DOT()
-        --if isDigit(ch) then
-        --    add1()
-        --    state = DIGDOT
-        --else
-            state = DONE
-            category = lexer.PUNCT
-        --end
+          state = DONE
+          category = lexer.PUNCT
     end
 
     -- State PLUS: we have seen a plus ("+") and nothing else.
     local function handle_PLUS()
-        if isDigit(ch) then
-            --add1()
-            state = DONE
-            category = lexer.OP
-        elseif ch == "." then
-            --if isDigit(nextChar()) then  -- lookahead
-                --add1()  -- add dot to lexeme
-                --state = DIGDOT
-            --else        -- lexeme is just "+"; do not add dot to lexeme
-                state = DONE
-                category = lexer.OP
-            --end
-        else
-            state = DONE
-            category = lexer.OP
-        end
+        state = DONE
+        category = lexer.OP
     end
 
     -- State MINUS: we have seen a minus ("-") and nothing else.
     local function handle_MINUS()
-        if isDigit(ch) then
-          state = DONE
-          category = lexer.OP
-        elseif ch == "." then
-            state = DONE
-            category = lexer.OP
-        else
-            state = DONE
-            category = lexer.OP
-        end
+      state = DONE
+      category = lexer.OP
     end
 
     -- State STAR: we have seen a star ("*"), slash ("/"), modulo ("%")
     --or equal ("=") and nothing else.
     local function handle_STAR()  -- Handle * or / or =
-        if ch == "=" and nextChar() == "=" then
+        if ch == "=" and nextChar() == "=" then -- Handle "=="
             add1()
             add1()
             state = DONE
@@ -487,8 +463,9 @@ function lexer.lex(program)
         end
     end
 
+    -- State ANGBRACK: we have seen an angled bracket ("<") or (">")
     local function handle_ANGBRACK()  -- Handle < or >
-        if ch == "=" then
+        if ch == "=" then -- Handle "<=", ">="
             add1()
             state = DONE
             category = lexer.OP
