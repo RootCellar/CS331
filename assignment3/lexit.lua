@@ -1,3 +1,12 @@
+-- lexit.lua
+-- Darian Marvel
+-- 2/11/2022
+-- Writing a lexer for "Tenrec"
+-- Based on Glenn G. Chappell's "lexer.lua"
+-- lexer.lua header comment below
+
+-- *********************************************************************
+
 -- lexer.lua
 -- VERSION 3
 -- Glenn G. Chappell
@@ -26,6 +35,7 @@
 --        --  It can be used as an index for array lexer.catnames.
 --    end
 
+-- *********************************************************************
 
 -- *********************************************************************
 -- Module Table Initialization
@@ -44,9 +54,10 @@ local lexer = {}  -- Our module; members are added below
 lexer.KEY    = 1
 lexer.ID     = 2
 lexer.NUMLIT = 3
-lexer.OP     = 4
-lexer.PUNCT  = 5
-lexer.MAL    = 6
+lexer.STRLIT = 4
+lexer.OP     = 5
+lexer.PUNCT  = 6
+lexer.MAL    = 7
 
 
 -- catnames
@@ -56,11 +67,33 @@ lexer.catnames = {
     "Keyword",
     "Identifier",
     "NumericLiteral",
+    "StringLiteral",
     "Operator",
     "Punctuation",
     "Malformed"
 }
 
+-- *********************************************************************
+-- Local Constants
+-- *********************************************************************
+
+local keywords = {
+  "and",
+  "char",
+  "cr",
+  "elif",
+  "else",
+  "false",
+  "func",
+  "if",
+  "not",
+  "or",
+  "print",
+  "read",
+  "return",
+  "true",
+  "while"
+}
 
 -- *********************************************************************
 -- Kind-of-Character Functions
@@ -176,6 +209,9 @@ function lexer.lex(program)
     local PLUS   = 6
     local MINUS  = 7
     local STAR   = 8
+    local EXP = 9
+    local STRING1 = 10
+    local STRING2 = 11
 
     -- ***** Character-Related Utility Functions *****
 
@@ -193,6 +229,10 @@ function lexer.lex(program)
     -- is past the end.
     local function nextChar()
         return program:sub(pos+1, pos+1)
+    end
+
+    local function nextCharC(count)
+        return program:sub(pos+count, pos+count)
     end
 
     -- drop1
@@ -220,17 +260,15 @@ function lexer.lex(program)
             end
 
             -- Done if no comment
-            if currChar() ~= "/" or nextChar() ~= "*" then
+            if currChar() ~= "#" then
                 break
             end
 
             -- Skip comment
-            drop1()  -- Drop leading "/"
-            drop1()  -- Drop leading "*"
+            drop1()  -- Drop leading "#"
             while true do
-                if currChar() == "*" and nextChar() == "/" then
-                    drop1()  -- Drop trailing "*"
-                    drop1()  -- Drop trailing "/"
+                if currChar() == "\n" then
+                    drop1()  -- Drop trailing "\n"
                     break
                 elseif currChar() == "" then  -- End of input?
                    return
@@ -274,6 +312,12 @@ function lexer.lex(program)
         elseif ch == "*" or ch == "/" or ch == "=" then
             add1()
             state = STAR
+        elseif ch == "'" then
+          add1()
+          state = STRING1
+        elseif ch == '"' then
+          add1()
+          state = STRING2
         else
             add1()
             state = DONE
@@ -287,12 +331,16 @@ function lexer.lex(program)
             add1()
         else
             state = DONE
-            if lexstr == "begin" or lexstr == "end"
-              or lexstr == "print" then
+            --if lexstr == "begin" or lexstr == "end"
+              --or lexstr == "print" then
+                --category = lexer.KEY
+            for i, word in pairs(keywords) do
+              if lexstr == word then
                 category = lexer.KEY
-            else
-                category = lexer.ID
+                return
+              end
             end
+            category = lexer.ID
         end
     end
 
@@ -300,13 +348,64 @@ function lexer.lex(program)
     local function handle_DIGIT()
         if isDigit(ch) then
             add1()
-        elseif ch == "." then
-            add1()
-            state = DIGDOT
+        elseif ch == "e" or ch == "E" then
+            if ( nextChar() == "+" and isDigit(nextCharC(2)) ) or isDigit(nextChar()) then
+              add1()
+              add1()
+              state = EXP
+            else
+              state = DONE
+              category = lexer.NUMLIT
+            end
+            --if
+        --elseif ch == "." then
+        --    add1()
+        --    state = DIGDOT
         else
             state = DONE
             category = lexer.NUMLIT
         end
+    end
+
+    local function handle_EXP()
+        if isDigit(ch) then
+            add1()
+        else
+            state = DONE
+            category = lexer.NUMLIT
+        end
+    end
+
+    local function handle_STRING1()
+        if ch == "\n" then
+          state = DONE
+          category = lexer.MAL
+        elseif ch == "'" then
+          add1()
+          state = DONE
+          category = lexer.STRLIT
+        elseif ch == "" then
+          state = DONE
+          category = lexer.MAL
+        else
+          add1()
+        end
+    end
+
+    local function handle_STRING2()
+      if ch == "\n" then
+        state = DONE
+        category = lexer.MAL
+      elseif ch == '"' then
+        add1()
+        state = DONE
+        category = lexer.STRLIT
+      elseif ch == "" then
+        state = DONE
+        category = lexer.MAL
+      else
+        add1()
+      end
     end
 
     -- State DIGDOT: we are in a NUMLIT, and we have seen ".".
@@ -321,28 +420,29 @@ function lexer.lex(program)
 
     -- State DOT: we have seen a dot (".") and nothing else.
     local function handle_DOT()
-        if isDigit(ch) then
-            add1()
-            state = DIGDOT
-        else
+        --if isDigit(ch) then
+        --    add1()
+        --    state = DIGDOT
+        --else
             state = DONE
-            category = lexer.OP
-        end
+            category = lexer.PUNCT
+        --end
     end
 
     -- State PLUS: we have seen a plus ("+") and nothing else.
     local function handle_PLUS()
         if isDigit(ch) then
-            add1()
-            state = DIGIT
+            --add1()
+            state = DONE
+            category = lexer.OP
         elseif ch == "." then
-            if isDigit(nextChar()) then  -- lookahead
-                add1()  -- add dot to lexeme
-                state = DIGDOT
-            else        -- lexeme is just "+"; do not add dot to lexeme
+            --if isDigit(nextChar()) then  -- lookahead
+                --add1()  -- add dot to lexeme
+                --state = DIGDOT
+            --else        -- lexeme is just "+"; do not add dot to lexeme
                 state = DONE
                 category = lexer.OP
-            end
+            --end
         elseif ch == "+" or ch == "=" then
             add1()
             state = DONE
@@ -356,17 +456,18 @@ function lexer.lex(program)
     -- State MINUS: we have seen a minus ("-") and nothing else.
     local function handle_MINUS()
         if isDigit(ch) then
-            add1()
-            state = DIGIT
+          --add1()
+          state = DONE
+          category = lexer.OP
         elseif ch == "." then
-            if isDigit(nextChar()) then  -- lookahead
-                add1()  -- add dot to lexeme
-                state = DIGDOT
-            else        -- lexeme is just "-"; do not add dot to lexeme
+            --if isDigit(nextChar()) then  -- lookahead
+                --add1()  -- add dot to lexeme
+                --state = DIGDOT
+            --else        -- lexeme is just "-"; do not add dot to lexeme
                 state = DONE
                 category = lexer.OP
-            end
-        elseif ch == "-" or ch == "=" then
+            --end
+        elseif ch == "=" then
             add1()
             state = DONE
             category = lexer.OP
@@ -401,6 +502,9 @@ function lexer.lex(program)
         [PLUS]=handle_PLUS,
         [MINUS]=handle_MINUS,
         [STAR]=handle_STAR,
+        [EXP]=handle_EXP,
+        [STRING1]=handle_STRING1,
+        [STRING2]=handle_STRING2
     }
 
     -- ***** Iterator Function *****
@@ -439,4 +543,3 @@ end
 
 
 return lexer
-
