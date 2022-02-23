@@ -249,6 +249,8 @@ end
 function parse_simple_stmt()
     local good, ast1, ast2, savelex, arrayflag
 
+    print(lexstr)
+
     if matchString("print") then
         if not matchString("(") then
             return false, nil
@@ -289,6 +291,22 @@ function parse_simple_stmt()
         return true, { RETURN_STMT, ast1 }
 
     else
+        -- must be an identifier
+        -- may be function call or assignment
+        if matchString("=") then
+          -- simple assignment
+          varname = lexstr
+
+          good, ast1 = parse_expr()
+          if not good then
+              return false, nil
+          end
+
+          table.insert(varname, ast1)
+
+        else
+          return true, nil
+        end
         -- TODO: WRITE THIS!!!
         return false, nil  -- DUMMY
     end
