@@ -1,3 +1,11 @@
+-- Darian Marvel
+-- 02/22/2022 (2's day)
+-- Finishing parseit.lua for Tenrec
+-- This file was started by Glenn G. Chappell
+
+
+-- *********************************************************************
+
 -- parseit.lua  INCOMPLETE
 -- Glenn G. Chappell
 -- 2022-02-16
@@ -6,6 +14,7 @@
 -- Solution to Assignment 4, Exercise 1
 -- Requires lexit.lua
 
+-- *********************************************************************
 
 local lexit = require "lexit"
 
@@ -355,4 +364,3 @@ end
 
 
 return parseit
-
