@@ -43,6 +43,9 @@ local lexstr = ""   -- String form of current lexeme
 local lexcat = 0    -- Category of current lexeme:
                     --  one of categories below, or 0 for past the end
 
+-- local constants
+local PARSEIT_PRINT_DEBUG = true
+
 
 -- *********************************************************************
 -- Symbolic Constants for AST
@@ -73,6 +76,14 @@ local ARRAY_VAR    = 18
 -- Utility Functions
 -- *********************************************************************
 
+-- print_debug
+-- prints the given string if the PARSEIT_PRINT_DEBUG
+-- constant above is true
+local function print_debug(string)
+  if(PARSEIT_PRINT_DEBUG) then
+      print(string)
+  end
+end
 
 -- advance
 -- Go to next lexeme and load it into lexstr, lexcat.
@@ -249,8 +260,6 @@ end
 function parse_simple_stmt()
     local good, ast1, ast2, savelex, arrayflag
 
-    print(lexstr)
-
     if matchString("print") then
         if not matchString("(") then
             return false, nil
@@ -266,15 +275,14 @@ function parse_simple_stmt()
         end
 
         ast2 = { PRINT_STMT, ast1 }
-
         while matchString(",") do
             good, ast1 = parse_print_arg()
             if not good then
                 return false, nil
             end
-
             table.insert(ast2, ast1)
         end
+
 
         if not matchString(")") then
             return false, nil
@@ -305,10 +313,9 @@ function parse_simple_stmt()
           table.insert(varname, ast1)
 
         else
-          return true, nil
+          advance()
+          return false, nil
         end
-        -- TODO: WRITE THIS!!!
-        return false, nil  -- DUMMY
     end
 end
 
@@ -326,6 +333,14 @@ end
 -- Parsing function for nonterminal "print_arg".
 -- Function init must be called before this function is called.
 function parse_print_arg()
+
+
+    if lexcat == lexit.STRLIT then
+      temp = lexstr
+      advance()
+      return true, {STRLIT_OUT, temp}
+    end
+
     -- TODO: WRITE THIS!!!
     return false, nil  -- DUMMY
 end

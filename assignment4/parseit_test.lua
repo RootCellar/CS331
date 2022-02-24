@@ -2117,4 +2117,3 @@ endMessage(tester:allPassed())
 
 -- Terminate program, signaling no error
 terminate(0)
-
