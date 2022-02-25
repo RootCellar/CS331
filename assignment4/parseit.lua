@@ -230,8 +230,6 @@ function parse_stmt_list()
           or lexstr == "return"
           or lexcat == lexit.ID then
             good, ast2 = parse_simple_stmt()
-            print_debug(lexstr)
-            print_debug(good)
             if not good then
                 return false, nil
             end
@@ -261,8 +259,6 @@ end
 -- Function init must be called before this function is called.
 function parse_simple_stmt()
     local good, ast1, ast2, savelex, arrayflag
-
-    print_debug(lexstr)
 
     if matchString("print") then
         if not matchString("(") then
@@ -321,8 +317,40 @@ end
 -- Parsing function for nonterminal "complex_stmt".
 -- Function init must be called before this function is called.
 function parse_complex_stmt()
-    -- TODO: WRITE THIS!!!
-    return false, nil  -- DUMMY
+
+    if matchString("func") then
+      if not lexcat == lexit.ID then
+        return false, nil
+      end
+
+      local id = lexstr
+      advance()
+
+      if not matchString("(") then
+        return false, nil
+      end
+      if not matchString(")") then
+        return false, nil
+      end
+
+      if not matchString("{") then
+        return false, nil
+      end
+
+      good, ast1 = parse_stmt_list()
+      if not good then
+        return false, nil
+      end
+
+      if not matchString("}") then
+        return false, nil
+      end
+
+      return true, { FUNC_DEF, id, ast1 }
+
+    end
+
+
 end
 
 
@@ -384,12 +412,8 @@ end
 -- Function init must be called before this function is called.
 function parse_factor()
 
-  print_debug("parse_factor")
-  print_debug(lexstr)
-
   local id = lexstr
   advance()
-  print_debug(lexstr)
 
   if matchString("=") then
     -- simple assignment
@@ -403,7 +427,6 @@ function parse_factor()
     table.insert(varname, ast1)
 
   elseif matchString("(") and matchString(")") then
-    print_debug(lexstr)
     return true, {FUNC_CALL, id}
   else
     --advance()
