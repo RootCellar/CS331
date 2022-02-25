@@ -318,6 +318,9 @@ end
 -- Function init must be called before this function is called.
 function parse_complex_stmt()
 
+    local good, exp, ast, ast2
+    local cmplxTable = {}
+
     if matchString("func") then
       if not lexcat == lexit.ID then
         return false, nil
@@ -350,6 +353,115 @@ function parse_complex_stmt()
 
     end
 
+    local ifOrWhile = false
+    local type
+
+    if matchString("while") then
+      type = WHILE_LOOP
+      --table.insert(cmplxTable, WHILE_LOOP)
+      cmplxTable = {WHILE_LOOP}
+      ifOrWhile = true
+    end
+    if matchString("if") then
+      type = IF_STMT
+      --table.insert(cmplxTable, IF_STMT)
+      cmplxTable = {IF_STMT}
+      ifOrWhile = true
+    end
+
+    if ifOrWhile then
+
+      if not matchString("(") then
+        return false, nil
+      end
+
+      good, exp = parse_expr()
+      if not good then
+        return false, nil
+      end
+
+      table.insert(cmplxTable, exp)
+
+      if not matchString(")") then
+        return false, nil
+      end
+
+      if not matchString("{") then
+        return false, nil
+      end
+
+      good, ast = parse_stmt_list()
+      if not good then
+        return false, nil
+      end
+
+      table.insert(cmplxTable, ast)
+
+      if not matchString("}") then
+        return false, nil
+      end
+
+      if type == IF_STMT then
+
+        while matchString("elif") do
+
+
+          if not matchString("(") then
+            return false, nil
+          end
+
+          good, exp = parse_expr()
+          if not good then
+            return false, nil
+          end
+
+          table.insert(cmplxTable, exp)
+
+          if not matchString(")") then
+            return false, nil
+          end
+
+          if not matchString("{") then
+            return false, nil
+          end
+
+          good, ast = parse_stmt_list()
+          if not good then
+            return false, nil
+          end
+
+          table.insert(cmplxTable, ast)
+
+          if not matchString("}") then
+            return false, nil
+          end
+
+
+        end
+
+        if matchString("else") then
+          hasElse = true
+
+          if not matchString("{") then
+            return false, nil
+          end
+
+          good, ast2 = parse_stmt_list()
+          if not good then
+            return false, nil
+          end
+
+          table.insert(cmplxTable, ast2)
+
+          if not matchString("}") then
+            return false, nil
+          end
+
+        end
+      end
+
+      return true, cmplxTable
+    end
 
 end
 
@@ -358,7 +470,6 @@ end
 -- Parsing function for nonterminal "print_arg".
 -- Function init must be called before this function is called.
 function parse_print_arg()
-
 
     if lexcat == lexit.STRLIT then
       temp = lexstr
@@ -375,8 +486,16 @@ end
 -- Parsing function for nonterminal "expr".
 -- Function init must be called before this function is called.
 function parse_expr()
-    -- TODO: WRITE THIS!!!
-    return false, nil  -- DUMMY
+
+    print_debug("parse_expr")
+    print_debug(lexstr)
+
+    if matchString("true") then
+      return true, {BOOLLIT_VAL, "true"}
+    end
+
+    
+
 end
 
 
