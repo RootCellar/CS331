@@ -43,9 +43,6 @@ local lexstr = ""   -- String form of current lexeme
 local lexcat = 0    -- Category of current lexeme:
                     --  one of categories below, or 0 for past the end
 
--- local constants
-local PARSEIT_PRINT_DEBUG = true
-
 
 -- *********************************************************************
 -- Symbolic Constants for AST
@@ -71,6 +68,7 @@ local READ_CALL    = 16
 local SIMPLE_VAR   = 17
 local ARRAY_VAR    = 18
 
+local PARSEIT_PRINT_DEBUG = true
 
 -- *********************************************************************
 -- Utility Functions
@@ -494,7 +492,7 @@ function parse_expr()
       return true, {BOOLLIT_VAL, "true"}
     end
 
-    
+
 
 end
 
