@@ -314,6 +314,24 @@ function parse_simple_stmt()
           return false, nil
         end
         return true, {ASSN_STMT, {SIMPLE_VAR, id}, ast1}
+      elseif matchString("[") then
+        good, ast1 = parse_expr()
+        if not good then
+          return false, nil
+        end
+        if not matchString("]") then
+          return false, nil
+        end
+        if not matchString("=") then
+          return false, nil
+        end
+
+        good, ast2 = parse_expr()
+        if not good then
+          return false, nil
+        end
+
+        return true, {ASSN_STMT, {ARRAY_VAR, id, ast1}, ast2}
       end
     else
       return false, nil
