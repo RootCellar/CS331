@@ -5,6 +5,8 @@
 -- Based on Glenn G. Chappell's "lexer.lua"
 -- lexer.lua header comment below
 
+-- Assignment 4: No changes made! It worked well
+
 -- *********************************************************************
 
 -- lexer.lua
