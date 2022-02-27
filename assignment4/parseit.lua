@@ -556,6 +556,10 @@ function parse_expr()
   end
 
   if lexstr == "and" or lexstr == "or" then
+
+    print_debug("parse_expr addl")
+    print_debug(lexstr)
+
     local op = lexstr
     advance()
     good, factor2 = parse_term()
@@ -592,6 +596,10 @@ function parse_compare_expr()
     or lexstr == ">"
     or lexstr == ">="
   then
+
+    print_debug("parse_compare_expr addl")
+    print_debug(lexstr)
+
     local op = lexstr
     advance()
     good, factor2 = parse_term()
@@ -622,6 +630,10 @@ function parse_arith_expr()
   end
 
   if lexstr == "+" or lexstr == "-" then
+
+    print_debug("parse_arith_expr addl")
+    print_debug(lexstr)
+
     local op = lexstr
     advance()
     good, factor2 = parse_term()
@@ -663,6 +675,10 @@ function parse_term()
     local factor2
 
     if lexcat == lexit.OP then
+
+      print_debug("parse_term addl")
+      print_debug(lexstr)
+
       local op = lexstr
       advance()
       good, factor2 = parse_term()
