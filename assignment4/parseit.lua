@@ -222,6 +222,9 @@ end
 function parse_stmt_list()
     local good, ast1, ast2
 
+    print_debug("parse_stmt_list")
+    print_debug(lexstr)
+
     ast1 = { STMT_LIST }
     while true do
         if lexstr == "print"
@@ -256,6 +259,10 @@ end
 -- Parsing function for nonterminal "simple_stmt".
 -- Function init must be called before this function is called.
 function parse_simple_stmt()
+
+    print_debug("parse_simple_stmt")
+    print_debug(lexstr)
+
     local good, ast1, ast2, savelex, arrayflag
 
     if matchString("print") then
@@ -319,6 +326,9 @@ end
 -- Function init must be called before this function is called.
 function parse_complex_stmt()
 
+  print_debug("parse_complex_stmt")
+  print_debug(lexstr)
+
     local good, exp, ast, ast2
     local cmplxTable = {}
 
@@ -376,10 +386,14 @@ function parse_complex_stmt()
         return false, nil
       end
 
+      print_debug("ifOrWhile: exp")
+
       good, exp = parse_expr()
       if not good then
         return false, nil
       end
+
+      print_debug("ifOrWhile: parsed expr")
 
       table.insert(cmplxTable, exp)
 
@@ -387,9 +401,13 @@ function parse_complex_stmt()
         return false, nil
       end
 
+      print_debug("ifOrWhile: before {")
+
       if not matchString("{") then
         return false, nil
       end
+
+      print_debug("ifOrWhile: stmt_list")
 
       good, ast = parse_stmt_list()
       if not good then
@@ -472,6 +490,9 @@ end
 -- Function init must be called before this function is called.
 function parse_print_arg()
 
+  print_debug("parse_print_arg")
+  print_debug(lexstr)
+
     if lexcat == lexit.STRLIT then
       temp = lexstr
       advance()
@@ -488,6 +509,9 @@ end
 -- Function init must be called before this function is called.
 function parse_expr()
 
+  print_debug("parse_expr")
+  print_debug(lexstr)
+
   local good, ast = parse_compare_expr()
   if not good then
     return false, nil
@@ -502,6 +526,9 @@ end
 -- Parsing function for nonterminal "compare_expr".
 -- Function init must be called before this function is called.
 function parse_compare_expr()
+
+  print_debug("parse_compare_expr")
+  print_debug(lexstr)
 
   local good, ast = parse_arith_expr()
   if not good then
@@ -518,6 +545,9 @@ end
 -- Function init must be called before this function is called.
 function parse_arith_expr()
 
+  print_debug("parse_arith_expr")
+  print_debug(lexstr)
+
   local good, ast = parse_term()
   if not good then
     return false, nil
@@ -532,12 +562,20 @@ end
 -- Parsing function for nonterminal "term".
 -- Function init must be called before this function is called.
 function parse_term()
+
+    print_debug("parse_term")
+    print_debug(lexstr)
+
     local good, factor = parse_factor()
     if not good then
       return false, nil
     end
 
     if not lexcat == lexit.OP then
+      return true, factor
+    end
+
+    if not (lexstr == "*" or lexstr == "/" or lexstr == "%") then
       return true, factor
     end
 
@@ -564,6 +602,9 @@ end
 -- Parsing function for nonterminal "factor".
 -- Function init must be called before this function is called.
 function parse_factor()
+
+  print_debug("parse_factor")
+  print_debug(lexstr)
 
   if matchString("(") then
     local good, ast = parse_expr()
@@ -611,10 +652,10 @@ function parse_factor()
   end
 
   if matchString("true") then
-    return true, {BOOLIT_VAL, "true"}
+    return true, {BOOLLIT_VAL, "true"}
   end
   if matchString("false") then
-    return true, {BOOLIT_VAL, "false"}
+    return true, {BOOLLIT_VAL, "false"}
   end
 
   if matchString("read") then
@@ -642,10 +683,13 @@ function parse_factor()
       end
 
       return true, {ARRAY_VAL, id, ast}
-    end
     else
       return true, {SIMPLE_VAR, id}
     end
+
+  end
+
+  return false, nil
 
 end
 
