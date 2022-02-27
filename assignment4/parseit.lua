@@ -296,17 +296,20 @@ function parse_simple_stmt()
 
         return true, { RETURN_STMT, ast1 }
 
-    else
-        -- must be an identifier
-        -- may be function call or assignment
-
-        good, ast1 = parse_factor()
+    elseif lexcat == lexit.ID then
+      local id = lexstr
+      advance()
+      if matchString("(") and matchString(")") then
+        return true, {FUNC_CALL, id}
+      elseif matchString("=") then
+        good, ast1 = parse_expr()
         if not good then
           return false, nil
         end
-
-        return good, ast1
-
+        return true, {ASSN_STMT, {SIMPLE_VAR, id}, ast1}
+      end
+    else
+      return false, nil
     end
 end
 
@@ -485,14 +488,12 @@ end
 -- Function init must be called before this function is called.
 function parse_expr()
 
-    print_debug("parse_expr")
-    print_debug(lexstr)
+  local good, ast = parse_compare_expr()
+  if not good then
+    return false, nil
+  end
 
-    if matchString("true") then
-      return true, {BOOLLIT_VAL, "true"}
-    end
-
-
+  return true, ast
 
 end
 
@@ -501,8 +502,14 @@ end
 -- Parsing function for nonterminal "compare_expr".
 -- Function init must be called before this function is called.
 function parse_compare_expr()
-    -- TODO: WRITE THIS!!!
-    return false, nil  -- DUMMY
+
+  local good, ast = parse_arith_expr()
+  if not good then
+    return false, nil
+  end
+
+  return true, ast
+
 end
 
 
@@ -510,8 +517,14 @@ end
 -- Parsing function for nonterminal "arith_expr".
 -- Function init must be called before this function is called.
 function parse_arith_expr()
-    -- TODO: WRITE THIS!!!
-    return false, nil  -- DUMMY
+
+  local good, ast = parse_term()
+  if not good then
+    return false, nil
+  end
+
+  return true, ast
+
 end
 
 
@@ -519,8 +532,31 @@ end
 -- Parsing function for nonterminal "term".
 -- Function init must be called before this function is called.
 function parse_term()
-    -- TODO: WRITE THIS!!!
-    return false, nil  -- DUMMY
+    local good, factor = parse_factor()
+    if not good then
+      return false, nil
+    end
+
+    if not lexcat == lexit.OP then
+      return true, factor
+    end
+
+    local table = {}
+    local factor2
+
+    if lexcat == lexit.OP then
+      local op = lexstr
+      advance()
+      good, factor2 = parse_term()
+      if not good then
+        return false, nil
+      end
+
+      return true, {{BIN_OP, op}, factor, factor2}
+
+    end
+
+    return false, nil
 end
 
 
@@ -529,26 +565,87 @@ end
 -- Function init must be called before this function is called.
 function parse_factor()
 
-  local id = lexstr
-  advance()
-
-  if matchString("=") then
-    -- simple assignment
-    varname = id
-
-    good, ast1 = parse_expr()
+  if matchString("(") then
+    local good, ast = parse_expr()
     if not good then
-        return false, nil
+      return false, nil
+    end
+    if not matchString(")") then
+      return false, nil
     end
 
-    table.insert(varname, ast1)
-
-  elseif matchString("(") and matchString(")") then
-    return true, {FUNC_CALL, id}
-  else
-    --advance()
-    return false, nil
+    return true, ast
   end
+
+  if matchString("+") then
+    local good, factor = parse_factor()
+    if not good then
+      return false, nil
+    end
+
+    return true, { {UN_OP, "+"}, factor}
+  end
+
+  if matchString("-") then
+    local good, factor = parse_factor()
+    if not good then
+      return false, nil
+    end
+
+    return true, { {UN_OP, "-"}, factor}
+  end
+
+  if matchString("not") then
+    local good, factor = parse_factor()
+    if not good then
+      return false, nil
+    end
+
+    return true, { {UN_OP, "not"}, factor}
+  end
+
+  if lexcat == lexit.NUMLIT then
+    local val = lexstr
+    advance()
+    return true, {NUMLIT_VAL, val}
+  end
+
+  if matchString("true") then
+    return true, {BOOLIT_VAL, "true"}
+  end
+  if matchString("false") then
+    return true, {BOOLIT_VAL, "false"}
+  end
+
+  if matchString("read") then
+    if matchString("(") and matchString(")") then
+      return true, {READ_CALL}
+    else
+      return false, nil
+    end
+  end
+
+  if lexcat == lexit.ID then
+    local id = lexstr
+    advance()
+
+    if matchString("(") and matchString(")") then
+      return true, {FUNC_CALL, id }
+    elseif matchString("[") then
+      local good, ast = parse_expr()
+      if not good then
+        return false, nil
+      end
+
+      if not matchString("]") then
+        return false, nil
+      end
+
+      return true, {ARRAY_VAL, id, ast}
+    end
+    else
+      return true, {SIMPLE_VAR, id}
+    end
 
 end
 
