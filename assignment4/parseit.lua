@@ -68,7 +68,7 @@ local READ_CALL    = 16
 local SIMPLE_VAR   = 17
 local ARRAY_VAR    = 18
 
-local PARSEIT_PRINT_DEBUG = true
+local PARSEIT_PRINT_DEBUG = false
 
 -- *********************************************************************
 -- Utility Functions
@@ -275,13 +275,13 @@ function parse_simple_stmt()
         end
 
         good, ast1 = parse_print_arg()
-        printValue(ast1)
         if not good then
             return false, nil
         end
 
         ast2 = { PRINT_STMT, ast1 }
         while matchString(",") do
+            print_debug("P")
             good, ast1 = parse_print_arg()
             if not good then
                 return false, nil
@@ -513,7 +513,7 @@ function parse_print_arg()
   print_debug(lexstr)
 
   if matchString("cr") then
-    return {CR_OUT}
+    return true, { CR_OUT }
   end
 
   if lexcat == lexit.STRLIT then
@@ -550,25 +550,24 @@ function parse_expr()
   print_debug("parse_expr")
   print_debug(lexstr)
 
+  local op, factor2
   local good, factor = parse_compare_expr()
   if not good then
     return false, nil
   end
 
-  if lexstr == "and" or lexstr == "or" then
+  while true do
+    op = lexstr
+    if not matchString("and") and not matchString("or") then
+      break
+    end
 
-    print_debug("parse_expr addl")
-    print_debug(lexstr)
-
-    local op = lexstr
-    advance()
-    good, factor2 = parse_term()
+    good, factor2 = parse_compare_expr()
     if not good then
       return false, nil
     end
 
-    return true, {{BIN_OP, op}, factor, factor2}
-
+    factor = { {BIN_OP, op}, factor, factor2}
   end
 
   return true, factor
@@ -584,31 +583,33 @@ function parse_compare_expr()
   print_debug("parse_compare_expr")
   print_debug(lexstr)
 
+  local op, factor2
   local good, factor = parse_arith_expr()
   if not good then
     return false, nil
   end
 
-  if lexstr == "=="
-    or lexstr == "!="
-    or lexstr == "<"
-    or lexstr == "<="
-    or lexstr == ">"
-    or lexstr == ">="
-  then
 
-    print_debug("parse_compare_expr addl")
-    print_debug(lexstr)
+  while true do
+    op = lexstr
+    if not (
+    matchString("==")
+    or matchString("!=")
+    or matchString("<=")
+    or matchString(">=")
+    or matchString("<")
+    or matchString(">")
+    )
+    then
+      break
+    end
 
-    local op = lexstr
-    advance()
-    good, factor2 = parse_term()
+    good, factor2 = parse_arith_expr()
     if not good then
       return false, nil
     end
 
-    return true, {{BIN_OP, op}, factor, factor2}
-
+    factor = { {BIN_OP, op}, factor, factor2}
   end
 
   return true, factor
@@ -624,29 +625,27 @@ function parse_arith_expr()
   print_debug("parse_arith_expr")
   print_debug(lexstr)
 
+  local op, factor2
   local good, factor = parse_term()
   if not good then
     return false, nil
   end
 
-  if lexstr == "+" or lexstr == "-" then
+  while true do
+    op = lexstr
+    if not matchString("+") and not matchString("-") then
+      break
+    end
 
-    print_debug("parse_arith_expr addl")
-    print_debug(lexstr)
-
-    local op = lexstr
-    advance()
     good, factor2 = parse_term()
     if not good then
       return false, nil
     end
 
-    return true, {{BIN_OP, op}, factor, factor2}
-
+    factor = { {BIN_OP, op}, factor, factor2}
   end
 
   return true, factor
-
 end
 
 
@@ -658,36 +657,24 @@ function parse_term()
     print_debug("parse_term")
     print_debug(lexstr)
 
+    local op, factor2
     local good, factor = parse_factor()
     if not good then
       return false, nil
     end
 
-    if not lexcat == lexit.OP then
-      return true, factor
-    end
+    while true do
+      op = lexstr
+      if not matchString("*") and not matchString("/") and not matchString("%") then
+        break
+      end
 
-    if not (lexstr == "*" or lexstr == "/" or lexstr == "%") then
-      return true, factor
-    end
-
-    local table = {}
-    local factor2
-
-    if lexcat == lexit.OP then
-
-      print_debug("parse_term addl")
-      print_debug(lexstr)
-
-      local op = lexstr
-      advance()
-      good, factor2 = parse_term()
+      good, factor2 = parse_factor()
       if not good then
         return false, nil
       end
 
-      return true, {{BIN_OP, op}, factor, factor2}
-
+      factor = { {BIN_OP, op}, factor, factor2}
     end
 
     return true, factor
@@ -793,73 +780,5 @@ end
 -- *********************************************************************
 -- Module Table Return
 -- *********************************************************************
-
--- printValue
--- Given a value, print it in (roughly) Lua literal notation if it is
--- nil, number, string, boolean, or table -- calling this function
--- recursively for table keys and values. For other types, print an
--- indication of the type. The second argument, if passed, is max_items:
--- the maximum number of items in a table to print.
-function printValue(...)
-    assert(select("#", ...) == 1 or select("#", ...) == 2,
-           "printValue: must pass 1 or 2 arguments")
-    local x, max_items = select(1, ...)  -- Get args (may be nil)
-    if type(max_items) ~= "nil" and type(max_items) ~= "number" then
-        error("printValue: max_items must be a number")
-    end
-
-    if type(x) == "nil" then
-        io.write("nil")
-    elseif type(x) == "number" then
-        io.write(x)
-    elseif type(x) == "string" then
-        io.write('"'..x..'"')
-    elseif type(x) == "boolean" then
-        if x then
-            io.write("true")
-        else
-            io.write("false")
-        end
-    elseif type(x) ~= "table" then
-        io.write('<'..type(x)..'>')
-    else  -- type is "table"
-        io.write("{")
-        local first = true  -- First iteration of loop?
-        local key_count, unprinted_count = 0, 0
-        for k, v in pairs(x) do
-            key_count = key_count + 1
-            if max_items ~= nil and key_count > max_items then
-                unprinted_count = unprinted_count + 1
-            else
-                if first then
-                    first = false
-                else
-                    io.write(",")
-                end
-                io.write(" [")
-                printValue(k, max_items)
-                io.write("]=")
-                printValue(v, max_items)
-            end
-        end
-        if unprinted_count > 0 then
-            if first then
-                first = false
-            else
-                io.write(",")
-            end
-            io.write(" <<"..unprinted_count)
-            if key_count - unprinted_count > 0 then
-                io.write(" more")
-            end
-            if unprinted_count == 1 then
-                io.write(" item>>")
-            else
-                io.write(" items>>")
-            end
-        end
-        io.write(" }")
-    end
-end
 
 return parseit
