@@ -2,7 +2,7 @@
 -- 02/22/2022 (2's day)
 -- Finishing parseit.lua for Tenrec
 -- This file was started by Glenn G. Chappell
-
+-- Original Comment Below
 
 -- *********************************************************************
 
@@ -41,7 +41,7 @@ local lexer_out_c   -- Return value #2 from above iterator
 -- For current lexeme
 local lexstr = ""   -- String form of current lexeme
 local lexcat = 0    -- Category of current lexeme:
-                    --  one of categories below, or 0 for past the end
+--  one of categories below, or 0 for past the end
 
 
 -- *********************************************************************
@@ -68,7 +68,14 @@ local READ_CALL    = 16
 local SIMPLE_VAR   = 17
 local ARRAY_VAR    = 18
 
+
+-- *********************************************************************
+-- Other Constants
+-- *********************************************************************
+
+
 local PARSEIT_PRINT_DEBUG = false
+
 
 -- *********************************************************************
 -- Utility Functions
@@ -79,7 +86,7 @@ local PARSEIT_PRINT_DEBUG = false
 -- constant above is true
 local function print_debug(string)
   if(PARSEIT_PRINT_DEBUG) then
-      print(string)
+    print(string)
   end
 end
 
@@ -88,23 +95,23 @@ end
 -- Should be called once before any parsing is done.
 -- Function init must be called before this function is called.
 local function advance()
-    -- Advance the iterator
-    lexer_out_s, lexer_out_c = iter(state, lexer_out_s)
+  -- Advance the iterator
+  lexer_out_s, lexer_out_c = iter(state, lexer_out_s)
 
-    -- If we're not past the end, copy current lexeme into vars
-    if lexer_out_s ~= nil then
-        lexstr, lexcat = lexer_out_s, lexer_out_c
-    else
-        lexstr, lexcat = "", 0
-    end
+  -- If we're not past the end, copy current lexeme into vars
+  if lexer_out_s ~= nil then
+    lexstr, lexcat = lexer_out_s, lexer_out_c
+  else
+    lexstr, lexcat = "", 0
+  end
 end
 
 
 -- init
 -- Initial call. Sets input for parsing functions.
 local function init(prog)
-    iter, state, lexer_out_s = lexit.lex(prog)
-    advance()
+  iter, state, lexer_out_s = lexit.lex(prog)
+  advance()
 end
 
 
@@ -112,7 +119,7 @@ end
 -- Return true if pos has reached end of input.
 -- Function init must be called before this function is called.
 local function atEnd()
-    return lexcat == 0
+  return lexcat == 0
 end
 
 
@@ -122,12 +129,12 @@ end
 -- advance, return false.
 -- Function init must be called before this function is called.
 local function matchString(s)
-    if lexstr == s then
-        advance()
-        return true
-    else
-        return false
-    end
+  if lexstr == s then
+    advance()
+    return true
+  else
+    return false
+  end
 end
 
 
@@ -137,12 +144,12 @@ end
 -- not, then do not advance, return false.
 -- Function init must be called before this function is called.
 local function matchCat(c)
-    if lexcat == c then
-        advance()
-        return true
-    else
-        return false
-    end
+  if lexcat == c then
+    advance()
+    return true
+  else
+    return false
+  end
 end
 
 
@@ -175,15 +182,15 @@ local parse_factor
 -- reached the end of the input or not. AST is only valid if first
 -- boolean is true.
 function parseit.parse(prog)
-    -- Initialization
-    init(prog)
+  -- Initialization
+  init(prog)
 
-    -- Get results from parsing
-    local good, ast = parse_program()  -- Parse start symbol
-    local done = atEnd()
+  -- Get results from parsing
+  local good, ast = parse_program()  -- Parse start symbol
+  local done = atEnd()
 
-    -- And return them
-    return good, done, ast
+  -- And return them
+  return good, done, ast
 end
 
 
@@ -209,10 +216,10 @@ end
 -- Parsing function for nonterminal "program".
 -- Function init must be called before this function is called.
 function parse_program()
-    local good, ast
+  local good, ast
 
-    good, ast = parse_stmt_list()
-    return good, ast
+  good, ast = parse_stmt_list()
+  return good, ast
 end
 
 
@@ -220,38 +227,38 @@ end
 -- Parsing function for nonterminal "stmt_list".
 -- Function init must be called before this function is called.
 function parse_stmt_list()
-    local good, ast1, ast2
+  local good, ast1, ast2
 
-    print_debug("parse_stmt_list")
-    print_debug(lexstr)
+  print_debug("parse_stmt_list")
+  print_debug(lexstr)
 
-    ast1 = { STMT_LIST }
-    while true do
-        if lexstr == "print"
-          or lexstr == "return"
-          or lexcat == lexit.ID then
-            good, ast2 = parse_simple_stmt()
-            if not good then
-                return false, nil
-            end
-            if not matchString(";") then
-                return false, nil
-            end
-        elseif lexstr == "func"
-          or lexstr == "if"
-          or lexstr == "while" then
-            good, ast2 = parse_complex_stmt()
-            if not good then
-                return false, nil
-            end
-        else
-            break
-        end
-
-        table.insert(ast1, ast2)
+  ast1 = { STMT_LIST }
+  while true do
+    if lexstr == "print"
+    or lexstr == "return"
+    or lexcat == lexit.ID then
+      good, ast2 = parse_simple_stmt()
+      if not good then
+        return false, nil
+      end
+      if not matchString(";") then
+        return false, nil
+      end
+    elseif lexstr == "func"
+    or lexstr == "if"
+    or lexstr == "while" then
+      good, ast2 = parse_complex_stmt()
+      if not good then
+        return false, nil
+      end
+    else
+      break
     end
 
-    return true, ast1
+    table.insert(ast1, ast2)
+  end
+
+  return true, ast1
 end
 
 
@@ -260,83 +267,84 @@ end
 -- Function init must be called before this function is called.
 function parse_simple_stmt()
 
-    print_debug("parse_simple_stmt")
-    print_debug(lexstr)
+  print_debug("parse_simple_stmt")
+  print_debug(lexstr)
 
-    local good, ast1, ast2, savelex, arrayflag
+  local good, ast1, ast2, savelex, arrayflag
 
-    if matchString("print") then
-        if not matchString("(") then
-            return false, nil
-        end
-
-        if matchString(")") then
-            return true, { PRINT_STMT }
-        end
-
-        good, ast1 = parse_print_arg()
-        if not good then
-            return false, nil
-        end
-
-        ast2 = { PRINT_STMT, ast1 }
-        while matchString(",") do
-            print_debug("P")
-            good, ast1 = parse_print_arg()
-            if not good then
-                return false, nil
-            end
-            table.insert(ast2, ast1)
-        end
-
-
-        if not matchString(")") then
-            return false, nil
-        end
-
-        return true, ast2
-
-    elseif matchString("return") then
-        good, ast1 = parse_expr()
-        if not good then
-            return false, nil
-        end
-
-        return true, { RETURN_STMT, ast1 }
-
-    elseif lexcat == lexit.ID then
-      local id = lexstr
-      advance()
-      if matchString("(") and matchString(")") then
-        return true, {FUNC_CALL, id}
-      elseif matchString("=") then
-        good, ast1 = parse_expr()
-        if not good then
-          return false, nil
-        end
-        return true, {ASSN_STMT, {SIMPLE_VAR, id}, ast1}
-      elseif matchString("[") then
-        good, ast1 = parse_expr()
-        if not good then
-          return false, nil
-        end
-        if not matchString("]") then
-          return false, nil
-        end
-        if not matchString("=") then
-          return false, nil
-        end
-
-        good, ast2 = parse_expr()
-        if not good then
-          return false, nil
-        end
-
-        return true, {ASSN_STMT, {ARRAY_VAR, id, ast1}, ast2}
-      end
-    else
+  if matchString("print") then
+    if not matchString("(") then
       return false, nil
     end
+    if matchString(")") then
+      return true, { PRINT_STMT }
+    end
+
+    good, ast1 = parse_print_arg()
+    if not good then
+      return false, nil
+    end
+
+    ast2 = { PRINT_STMT, ast1 }
+    while matchString(",") do
+      print_debug("P")
+      good, ast1 = parse_print_arg()
+      if not good then
+        return false, nil
+      end
+      table.insert(ast2, ast1)
+    end
+
+
+    if not matchString(")") then
+      return false, nil
+    end
+
+    return true, ast2
+  elseif matchString("return") then
+    good, ast1 = parse_expr()
+    if not good then
+      return false, nil
+    end
+
+    return true, { RETURN_STMT, ast1 }
+
+  elseif lexcat == lexit.ID then
+    local id = lexstr
+    advance()
+
+    if matchString("(") and matchString(")") then
+      return true, {FUNC_CALL, id}
+    elseif matchString("=") then
+      
+      good, ast1 = parse_expr()
+      if not good then
+        return false, nil
+      end
+      return true, {ASSN_STMT, {SIMPLE_VAR, id}, ast1}
+
+    elseif matchString("[") then
+      good, ast1 = parse_expr()
+      if not good then
+        return false, nil
+      end
+      if not matchString("]") then
+        return false, nil
+      end
+      if not matchString("=") then
+        return false, nil
+      end
+
+      good, ast2 = parse_expr()
+      if not good then
+        return false, nil
+      end
+
+      return true, {ASSN_STMT, {ARRAY_VAR, id, ast1}, ast2}
+    end
+  else
+    return false, nil
+  end
 end
 
 
@@ -348,158 +356,156 @@ function parse_complex_stmt()
   print_debug("parse_complex_stmt")
   print_debug(lexstr)
 
-    local good, exp, ast, ast2
-    local cmplxTable = {}
+  local good, exp, ast, ast2
+  local cmplxTable = {}
 
-    if matchString("func") then
-      if not lexcat == lexit.ID then
-        return false, nil
-      end
-
-      local id = lexstr
-      advance()
-
-      if not matchString("(") then
-        return false, nil
-      end
-      if not matchString(")") then
-        return false, nil
-      end
-
-      if not matchString("{") then
-        return false, nil
-      end
-
-      good, ast1 = parse_stmt_list()
-      if not good then
-        return false, nil
-      end
-
-      if not matchString("}") then
-        return false, nil
-      end
-
-      return true, { FUNC_DEF, id, ast1 }
-
+  if matchString("func") then
+    if not lexcat == lexit.ID then
+      return false, nil
     end
 
-    local ifOrWhile = false
-    local type
+    local id = lexstr
+    advance()
 
-    if matchString("while") then
-      type = WHILE_LOOP
-      --table.insert(cmplxTable, WHILE_LOOP)
-      cmplxTable = {WHILE_LOOP}
-      ifOrWhile = true
+    if not matchString("(") then
+      return false, nil
     end
-    if matchString("if") then
-      type = IF_STMT
-      --table.insert(cmplxTable, IF_STMT)
-      cmplxTable = {IF_STMT}
-      ifOrWhile = true
+    if not matchString(")") then
+      return false, nil
+    end
+    if not matchString("{") then
+      return false, nil
     end
 
-    if ifOrWhile then
+    good, ast1 = parse_stmt_list()
+    if not good then
+      return false, nil
+    end
 
-      if not matchString("(") then
-        return false, nil
-      end
+    if not matchString("}") then
+      return false, nil
+    end
 
-      print_debug("ifOrWhile: exp")
+    return true, { FUNC_DEF, id, ast1 }
+  end
 
-      good, exp = parse_expr()
-      if not good then
-        return false, nil
-      end
+  local ifOrWhile = false
+  local type
 
-      print_debug("ifOrWhile: parsed expr")
+  if matchString("while") then
+    type = WHILE_LOOP
+    --table.insert(cmplxTable, WHILE_LOOP)
+    cmplxTable = {WHILE_LOOP}
+    ifOrWhile = true
+  end
+  if matchString("if") then
+    type = IF_STMT
+    --table.insert(cmplxTable, IF_STMT)
+    cmplxTable = {IF_STMT}
+    ifOrWhile = true
+  end
 
-      table.insert(cmplxTable, exp)
+  if ifOrWhile then
 
-      if not matchString(")") then
-        return false, nil
-      end
+    if not matchString("(") then
+      return false, nil
+    end
 
-      print_debug("ifOrWhile: before {")
+    print_debug("ifOrWhile: exp")
 
-      if not matchString("{") then
-        return false, nil
-      end
+    good, exp = parse_expr()
+    if not good then
+      return false, nil
+    end
 
-      print_debug("ifOrWhile: stmt_list")
+    print_debug("ifOrWhile: parsed expr")
 
-      good, ast = parse_stmt_list()
-      if not good then
-        return false, nil
-      end
+    table.insert(cmplxTable, exp)
 
-      table.insert(cmplxTable, ast)
+    if not matchString(")") then
+      return false, nil
+    end
 
-      if not matchString("}") then
-        return false, nil
-      end
+    print_debug("ifOrWhile: before {")
 
-      if type == IF_STMT then
+    if not matchString("{") then
+      return false, nil
+    end
 
-        while matchString("elif") do
+    print_debug("ifOrWhile: stmt_list")
 
+    good, ast = parse_stmt_list()
+    if not good then
+      return false, nil
+    end
 
-          if not matchString("(") then
-            return false, nil
-          end
+    table.insert(cmplxTable, ast)
 
-          good, exp = parse_expr()
-          if not good then
-            return false, nil
-          end
+    if not matchString("}") then
+      return false, nil
+    end
 
-          table.insert(cmplxTable, exp)
+    if type == IF_STMT then
 
-          if not matchString(")") then
-            return false, nil
-          end
-
-          if not matchString("{") then
-            return false, nil
-          end
-
-          good, ast = parse_stmt_list()
-          if not good then
-            return false, nil
-          end
-
-          table.insert(cmplxTable, ast)
-
-          if not matchString("}") then
-            return false, nil
-          end
+      while matchString("elif") do
 
 
+        if not matchString("(") then
+          return false, nil
         end
 
-        if matchString("else") then
-          hasElse = true
-
-          if not matchString("{") then
-            return false, nil
-          end
-
-          good, ast2 = parse_stmt_list()
-          if not good then
-            return false, nil
-          end
-
-          table.insert(cmplxTable, ast2)
-
-          if not matchString("}") then
-            return false, nil
-          end
-
+        good, exp = parse_expr()
+        if not good then
+          return false, nil
         end
+
+        table.insert(cmplxTable, exp)
+
+        if not matchString(")") then
+          return false, nil
+        end
+
+        if not matchString("{") then
+          return false, nil
+        end
+
+        good, ast = parse_stmt_list()
+        if not good then
+          return false, nil
+        end
+
+        table.insert(cmplxTable, ast)
+
+        if not matchString("}") then
+          return false, nil
+        end
+
+
       end
 
-      return true, cmplxTable
+      if matchString("else") then
+        hasElse = true
+
+        if not matchString("{") then
+          return false, nil
+        end
+
+        good, ast2 = parse_stmt_list()
+        if not good then
+          return false, nil
+        end
+
+        table.insert(cmplxTable, ast2)
+
+        if not matchString("}") then
+          return false, nil
+        end
+
+      end
     end
+
+    return true, cmplxTable
+  end
 
 end
 
@@ -654,30 +660,30 @@ end
 -- Function init must be called before this function is called.
 function parse_term()
 
-    print_debug("parse_term")
-    print_debug(lexstr)
+  print_debug("parse_term")
+  print_debug(lexstr)
 
-    local op, factor2
-    local good, factor = parse_factor()
+  local op, factor2
+  local good, factor = parse_factor()
+  if not good then
+    return false, nil
+  end
+
+  while true do
+    op = lexstr
+    if not matchString("*") and not matchString("/") and not matchString("%") then
+      break
+    end
+
+    good, factor2 = parse_factor()
     if not good then
       return false, nil
     end
 
-    while true do
-      op = lexstr
-      if not matchString("*") and not matchString("/") and not matchString("%") then
-        break
-      end
+    factor = { {BIN_OP, op}, factor, factor2}
+  end
 
-      good, factor2 = parse_factor()
-      if not good then
-        return false, nil
-      end
-
-      factor = { {BIN_OP, op}, factor, factor2}
-    end
-
-    return true, factor
+  return true, factor
 end
 
 
