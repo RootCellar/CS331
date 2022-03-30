@@ -10,10 +10,14 @@ module PA5 where
 
 -- =====================================================================
 
+collatz n
+  | n == 1 = 0
+  | mod n 2 == 0 = collatz (div n 2) + 1
+  | otherwise = collatz (3*n+1) + 1
 
 -- collatzCounts
 collatzCounts :: [Integer]
-collatzCounts = [42..]  -- DUMMY; REWRITE THIS!!!
+collatzCounts = map collatz [1..]  -- DUMMY; REWRITE THIS!!!
 
 
 -- =====================================================================
@@ -56,4 +60,3 @@ sumEvenOdd :: Num a => [a] -> (a, a)
   the following: foldl, foldr, foldl1, foldr1.
 -}
 sumEvenOdd _ = (0, 0)  -- DUMMY; REWRITE THIS!!!
-
