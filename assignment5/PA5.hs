@@ -21,7 +21,6 @@ collatzC n
 collatzCounts :: [Integer]
 collatzCounts = map collatzC [1..]
 
-
 -- =====================================================================
 
 findL n pre list
@@ -32,7 +31,6 @@ findL n pre list
 -- findList
 findList :: Eq a => [a] -> [a] -> Maybe Int
 findList pre list = findL 0 pre list
-
 
 -- =====================================================================
 
@@ -50,8 +48,6 @@ countEqual first second
 first ## second = count where
   count = countEqual first second
 
-
-
 -- =====================================================================
 
 findEquals func first second
@@ -66,7 +62,6 @@ findEquals func first second
 filterAB :: (a -> Bool) -> [a] -> [b] -> [b]
 filterAB func first second = equals where
   equals = findEquals func first second
-
 
 -- =====================================================================
 
