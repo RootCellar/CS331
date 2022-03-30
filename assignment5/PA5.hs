@@ -36,9 +36,12 @@ findList pre list = findL 0 pre list
 -- =====================================================================
 
 countEqual first second
+ -- 0 if either is empty
  | length first == 0 = 0
  | length second == 0 = 0
+ -- found one! now recurse
  | head first == head second = 1 + countEqual (drop 1 first) (drop 1 second)
+ -- didn't find one, recurse
  | otherwise = countEqual (drop 1 first) (drop 1 second)
 
 -- operator ##
@@ -50,10 +53,18 @@ first ## second = count where
 
 -- =====================================================================
 
+findEquals func first second
+  -- 0 if either is empty
+  | length first == 0 = []
+  | length second == 0 = []
+  -- found one!
+  | func (head first) == True = [head second] ++ findEquals func (drop 1 first) (drop 1 second)
+  | otherwise = findEquals func (drop 1 first) (drop 1 second)
 
 -- filterAB
 filterAB :: (a -> Bool) -> [a] -> [b] -> [b]
-filterAB _ _ bs = bs  -- DUMMY; REWRITE THIS!!!
+filterAB func first second = equals where
+  equals = findEquals func first second
 
 
 -- =====================================================================
