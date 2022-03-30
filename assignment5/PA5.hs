@@ -35,10 +35,17 @@ findList pre list = findL 0 pre list
 
 -- =====================================================================
 
+countEqual first second
+ | length first == 0 = 0
+ | length second == 0 = 0
+ | head first == head second = 1 + countEqual (drop 1 first) (drop 1 second)
+ | otherwise = countEqual (drop 1 first) (drop 1 second)
 
 -- operator ##
 (##) :: Eq a => [a] -> [a] -> Int
-_ ## _ = 42  -- DUMMY; REWRITE THIS!!!
+first ## second = count where
+  count = countEqual first second
+
 
 
 -- =====================================================================
