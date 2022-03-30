@@ -69,6 +69,15 @@ filterAB func first second = equals where
 
 -- =====================================================================
 
+-- add tuple to current tuple
+accumulate current item
+  | otherwise = (fst current + fst item, snd current + snd item)
+
+-- transform list into tuples - first value being even index, second being odd
+tuplify list
+  | length list == 0 = []
+  | length list == 1 = [(head list, 0)]
+  | otherwise = (list !! 0, list !! 1) : tuplify (drop 2 list)
 
 -- sumEvenOdd
 sumEvenOdd :: Num a => [a] -> (a, a)
@@ -82,4 +91,4 @@ sumEvenOdd :: Num a => [a] -> (a, a)
   Above, "..." should be replaced by other code. "fold*" must be one of
   the following: foldl, foldr, foldl1, foldr1.
 -}
-sumEvenOdd _ = (0, 0)  -- DUMMY; REWRITE THIS!!!
+sumEvenOdd list = foldl (accumulate) (0, 0) (tuplify list)
