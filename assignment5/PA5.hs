@@ -1,6 +1,7 @@
--- PA5.hs  SKELETON
--- Glenn G. Chappell
--- 2022-03-16
+-- PA5.hs
+-- Darian Marvel
+-- Started by Glenn G. Chappell
+-- 3/29/2022
 --
 -- For CS F331 / CSCE A331 Spring 2022
 -- Solutions to Assignment 5 Exercise B
