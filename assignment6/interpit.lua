@@ -280,23 +280,21 @@ function interpit.interp(ast, state, incall, outcall)
               print(astToStr(condition))
               if condition[1] == STMT_LIST then
                   -- This isn't a condition, it's an else!
-                  if condition[2] ~= nil then
-                    interp_stmt(condition[2])
-                  end
+                  interp_stmt_list(condition)
                   return
               end
               local body = ast[spot+1]
               local result = eval_expr(condition)
-              if result ~= 0 and body[2] ~= nil then
-                  interp_stmt(body[2])
+              if result ~= 0 then
+                  interp_stmt_list(body)
                   return
               end
             end
         elseif ast[1] == WHILE_LOOP then
             local condition = ast[2]
             local body = ast[3]
-            while eval_expr(condition) ~= 0 and body[2] ~= nil do
-                interp_stmt(body[2])
+            while eval_expr(condition) ~= 0 do
+                interp_stmt_list(body)
             end
         else
             print("*** UNIMPLEMENTED STATEMENT")
