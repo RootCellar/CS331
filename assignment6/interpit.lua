@@ -202,6 +202,9 @@ function interpit.interp(ast, state, incall, outcall)
     -- interp_stmt
     -- Given the ast for a statement, execute it.
     function interp_stmt(ast)
+
+        print(astToStr(ast))
+
         if ast[1] == PRINT_STMT then
             for i = 2, #ast do
                 if ast[i][1] == STRLIT_OUT then
@@ -227,6 +230,18 @@ function interpit.interp(ast, state, incall, outcall)
                 funcbody = { STMT_LIST }
             end
             interp_stmt_list(funcbody)
+        elseif ast[1] == ASSN_STMT then
+            local varexpr = ast[2]
+            local value = eval_expr(ast[3])
+            if varexpr[1] == SIMPLE_VAR then
+                local varname = varexpr[2]
+                state.v[varname] = value
+            elseif varexpr[1] == ARRAY_VAR then
+                local varname = varexpr[2]
+                local locexpr = varexpr[3]
+                local loc = eval_expr(locexpr)
+                state.a[varname][loc] = value
+            end
         else
             print("*** UNIMPLEMENTED STATEMENT")
         end
@@ -237,10 +252,31 @@ function interpit.interp(ast, state, incall, outcall)
     -- Given the AST for an expression, evaluate it and return the
     -- value.
     function eval_expr(ast)
+
+        print(astToStr(ast))
+
         local result
 
         if ast[1] == NUMLIT_VAL then
             result = strToNum(ast[2])
+        elseif ast[1] == BOOLLIT_VAL then
+            local value = ast[2]
+            if value == "true" then
+              result = 1
+            else
+              result = 0
+            end
+        elseif ast[1] == SIMPLE_VAR then
+            local varname = ast[2]
+            if state.v[varname] == null then
+              result = 0
+            else
+              result = state.v[varname]
+            end
+        elseif ast[1] == READ_CALL then
+            local line = incall()
+            line = strToNum(line)
+            result = line
         else
             print("*** UNIMPLEMENTED EXPRESSION")
             result = 42  -- DUMMY VALUE
