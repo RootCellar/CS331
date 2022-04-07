@@ -1,11 +1,12 @@
--- interpit.lua  INCOMPLETE
--- Glenn G. Chappell
--- 2022-03-30
+-- interpit.lua
+-- Darian Marvel
+-- 4/06/2022
 --
 -- For CS F331 / CSCE A331 Spring 2022
 -- Interpret AST from parseit.parse
 -- Solution to Assignment 6, Exercise 2
-
+--
+-- Based on Glenn G. Chappell's incomplete interpit.lua
 
 -- *** To run a Tenrec program, use tenrec.lua, which uses this file.
 
@@ -261,4 +262,3 @@ end
 
 
 return interpit
-
