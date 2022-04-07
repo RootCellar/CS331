@@ -213,7 +213,11 @@ function interpit.interp(ast, state, incall, outcall)
                 elseif ast[i][1] == CR_OUT then
                     outcall("\n")
                 elseif ast[i][1] == CHAR_CALL then
-                    print("*** UNIMPLEMENTED WRITE ARG")
+                    local value = eval_expr(ast[i][2])
+                    if value < 0 or value > 255 then
+                        value = 0
+                    end
+                    outcall(string.char(value))
                 else  -- Expression
                     local val = eval_expr(ast[i])
                     outcall(numToStr(val))
@@ -239,8 +243,11 @@ function interpit.interp(ast, state, incall, outcall)
             elseif varexpr[1] == ARRAY_VAR then
                 local varname = varexpr[2]
                 local locexpr = varexpr[3]
-                local loc = eval_expr(locexpr)
-                state.a[varname][loc] = value
+                local location = eval_expr(locexpr)
+                if state.a[varname] == nil then
+                    state.a[varname] = {}
+                end
+                state.a[varname][location] = value
             end
         else
             print("*** UNIMPLEMENTED STATEMENT")
@@ -268,15 +275,42 @@ function interpit.interp(ast, state, incall, outcall)
             end
         elseif ast[1] == SIMPLE_VAR then
             local varname = ast[2]
-            if state.v[varname] == null then
+            if state.v[varname] == nil then
               result = 0
             else
               result = state.v[varname]
+            end
+        elseif ast[1] == ARRAY_VAR then
+            local varname = ast[2]
+            local loc = eval_expr(ast[3])
+            if state.a[varname] == nil then
+              result = 0
+            elseif state.a[varname][loc] == nil then
+              result = 0
+            else
+              result = state.a[varname][loc]
             end
         elseif ast[1] == READ_CALL then
             local line = incall()
             line = strToNum(line)
             result = line
+        elseif ast[1][1] == UN_OP then
+            local op = eval_expr(ast[2])
+            local operator = ast[1][2]
+
+            if operator == "-" then
+                result = op * -1
+            elseif operator == "+" then
+                result = op
+            end
+        elseif ast[1][1] == BIN_OP then
+            local op1 = eval_expr(ast[2])
+            local op2 = eval_expr(ast[3])
+            local operator = ast[1][2]
+
+            if operator == "+" then
+                result = op1 + op2
+            end
         else
             print("*** UNIMPLEMENTED EXPRESSION")
             result = 42  -- DUMMY VALUE
