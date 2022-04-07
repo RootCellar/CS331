@@ -273,6 +273,16 @@ function interpit.interp(ast, state, incall, outcall)
                 end
                 state.a[varname][location] = value
             end
+        elseif ast[1] == IF_STMT then
+            local condition = ast[2]
+            local body = ast[3]
+            local elsebody = ast[4]
+            local result = eval_expr(condition)
+            if result ~= 0 and body[2] ~= nil then
+                interp_stmt(body[2])
+            elseif result == 0 and elsebody ~= nil and elsebody[2] ~= nil then
+                interp_stmt(elsebody[2])
+            end
         else
             print("*** UNIMPLEMENTED STATEMENT")
         end
