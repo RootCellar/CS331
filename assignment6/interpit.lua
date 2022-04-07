@@ -106,6 +106,30 @@ local function boolToInt(b)
     end
 end
 
+local function toBool(b)
+    if type(b) == "number" then
+        if b == 0 then
+            return 0
+        else
+            return 1
+        end
+    elseif type(b) == "string" then
+        if b == "true" or b == "True" then
+            return 1
+        else
+            return false
+        end
+    elseif type(b) == "boolean" then
+        if b then
+            return 1
+        else
+            return 0
+        end
+    else
+        assert(false)
+    end
+end
+
 
 -- astToStr
 -- Given an AST, produce a string holding the AST in (roughly) Lua form,
@@ -302,6 +326,12 @@ function interpit.interp(ast, state, incall, outcall)
                 result = op * -1
             elseif operator == "+" then
                 result = op
+            elseif operator == "not" then
+                if op == 0 then
+                    result = 1
+                else
+                    result = 0
+                end
             end
         elseif ast[1][1] == BIN_OP then
             local op1 = eval_expr(ast[2])
@@ -310,6 +340,40 @@ function interpit.interp(ast, state, incall, outcall)
 
             if operator == "+" then
                 result = op1 + op2
+            elseif operator == "-" then
+                result = op1 - op2
+            elseif operator == "*" then
+                result = op1 * op2
+            elseif operator == "/" then
+                if op2 == 0 then
+                    result = 0
+                else
+                    result = op1 / op2
+                end
+                result = numToInt(result)
+            elseif operator == "%" then
+                if op2 == 0 then
+                    result = 0
+                else
+                    result = op1 % op2
+                end
+                result = numToInt(result)
+            elseif operator == "==" then
+                result = toBool(op1 == op2)
+            elseif operator == "!=" then
+                result = toBool(op1 ~= op2)
+            elseif operator == "<" then
+                result = toBool(op1 < op2)
+            elseif operator == "<=" then
+                result = toBool(op1 <= op2)
+            elseif operator == ">" then
+                result = toBool(op1 > op2)
+            elseif operator == ">=" then
+                result = toBool(op1 >= op2)
+            elseif operator == "and" then
+                result = toBool(op1 ~= 0 and op2 ~= 0)
+            elseif operator == "or" then
+                result = toBool(op1 ~= 0 or op2 ~= 0)
             end
         else
             print("*** UNIMPLEMENTED EXPRESSION")
