@@ -274,14 +274,22 @@ function interpit.interp(ast, state, incall, outcall)
                 state.a[varname][location] = value
             end
         elseif ast[1] == IF_STMT then
-            local condition = ast[2]
-            local body = ast[3]
-            local elsebody = ast[4]
-            local result = eval_expr(condition)
-            if result ~= 0 and body[2] ~= nil then
-                interp_stmt(body[2])
-            elseif result == 0 and elsebody ~= nil and elsebody[2] ~= nil then
-                interp_stmt(elsebody[2])
+            for spot = 2, #ast, 2 do
+              -- Plan: loop in increments of 2
+              local condition = ast[spot]
+              if condition[1] == SMT_LIST then
+                  -- This isn't a condition, it's an else!
+                  if condition[2] ~= nil then
+                    interp_stmt(condition[2])
+                  end
+                  break
+              end
+              local body = ast[spot+1]
+              local result = eval_expr(condition)
+              if result ~= 0 and body[2] ~= nil then
+                  interp_stmt(body[2])
+                  break
+              end
             end
         else
             print("*** UNIMPLEMENTED STATEMENT")
