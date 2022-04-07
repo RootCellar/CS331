@@ -282,12 +282,10 @@ function interpit.interp(ast, state, incall, outcall)
         elseif ast[1] == RETURN_STMT then
             local value = eval_expr(ast[2])
             state.v["return"] = value
-            print(state.v["return"])
         elseif ast[1] == IF_STMT then
             for spot = 2, #ast, 2 do
               -- Plan: loop in increments of 2
               local condition = ast[spot]
-              print(astToStr(condition))
               if condition[1] == STMT_LIST then
                   -- This isn't a condition, it's an else!
                   interp_stmt_list(condition)
