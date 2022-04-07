@@ -257,7 +257,13 @@ function interpit.interp(ast, state, incall, outcall)
             if funcbody == nil then
                 funcbody = { STMT_LIST }
             end
+            --state.v["return"] = nil
             interp_stmt_list(funcbody)
+            if state.v["return"] ~= nil then
+                result = state.v["return"]
+            else
+                result = 0
+            end
         elseif ast[1] == ASSN_STMT then
             local varexpr = ast[2]
             local value = eval_expr(ast[3])
@@ -273,6 +279,10 @@ function interpit.interp(ast, state, incall, outcall)
                 end
                 state.a[varname][location] = value
             end
+        elseif ast[1] == RETURN_STMT then
+            local value = eval_expr(ast[2])
+            state.v["return"] = value
+            print(state.v["return"])
         elseif ast[1] == IF_STMT then
             for spot = 2, #ast, 2 do
               -- Plan: loop in increments of 2
@@ -307,6 +317,7 @@ function interpit.interp(ast, state, incall, outcall)
     -- value.
     function eval_expr(ast)
 
+        print("eval_expr")
         print(astToStr(ast))
 
         local result
@@ -341,6 +352,19 @@ function interpit.interp(ast, state, incall, outcall)
             local line = incall()
             line = strToNum(line)
             result = line
+        elseif ast[1] == FUNC_CALL then
+            local funcname = ast[2]
+            local funcbody = state.f[funcname]
+            if funcbody == nil then
+                funcbody = { STMT_LIST }
+            end
+            --state.v["return"] = nil
+            interp_stmt_list(funcbody)
+            if state.v["return"] ~= nil then
+                result = state.v["return"]
+            else
+                result = 0
+            end
         elseif ast[1][1] == UN_OP then
             local op = eval_expr(ast[2])
             local operator = ast[1][2]

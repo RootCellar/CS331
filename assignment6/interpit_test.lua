@@ -426,6 +426,8 @@ function checkInterp(t, ast,
 
     local output = {}
     local function outcall(str)
+        print("***** OUTCALL *****")
+        print(str)
         if type(str) == "string" then
             table.insert(output, str)
         elseif str == nil then
@@ -2250,4 +2252,3 @@ endMessage(tester:allPassed())
 
 -- Terminate program, signaling no error
 terminate(0)
-
