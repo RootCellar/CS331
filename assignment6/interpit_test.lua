@@ -426,8 +426,8 @@ function checkInterp(t, ast,
 
     local output = {}
     local function outcall(str)
-        print("***** OUTCALL *****")
-        print(str)
+        --print("***** OUTCALL *****")
+        --print(str)
         if type(str) == "string" then
             table.insert(output, str)
         elseif str == nil then
