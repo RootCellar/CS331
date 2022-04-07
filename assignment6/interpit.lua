@@ -227,7 +227,7 @@ function interpit.interp(ast, state, incall, outcall)
     -- Given the ast for a statement, execute it.
     function interp_stmt(ast)
 
-        print(astToStr(ast))
+        --print(astToStr(ast))
 
         if ast[1] == PRINT_STMT then
             for i = 2, #ast do
@@ -317,8 +317,8 @@ function interpit.interp(ast, state, incall, outcall)
     -- value.
     function eval_expr(ast)
 
-        print("eval_expr")
-        print(astToStr(ast))
+        --print("eval_expr")
+        --print(astToStr(ast))
 
         local result
 
