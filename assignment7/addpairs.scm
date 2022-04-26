@@ -5,7 +5,7 @@
 (define (addpairs . args)
   (cond
     ((null? args) ())
-    ((= 1 (length args)) args)
+    ((= (length args) 1) args)
     (else (append (list (+ (car args) (cadr args))) (apply addpairs (cdr (cdr args)))))
   )
 )
