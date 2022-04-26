@@ -3,7 +3,11 @@
 ; Writing a procedure in Scheme for Assignment 7
 
 (define (addpair . p)
-  (+ (car p) (cadr p))
+  (cond
+    ((null? p) 0)
+    ((null? cadr p) 0)
+    (else (+ (car p) (cadr p)))
+  )
 )
 
 (define (addpairs . args)
