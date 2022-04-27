@@ -1,4 +1,4 @@
-;#lang scheme
+#lang scheme
 
 ; Darian Marvel
 ; 4/25/2022
