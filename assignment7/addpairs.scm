@@ -6,7 +6,7 @@
 
 (define (addpairs . args)
   (cond
-    ; handle even number of arguments (or none...)
+    ; handle case with no arguments (usually when even number of arguments are given)
     ((null? args) ())
 
     ; handle odd number of arguments
